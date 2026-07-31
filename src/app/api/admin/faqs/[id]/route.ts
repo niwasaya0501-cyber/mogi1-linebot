@@ -1,0 +1,35 @@
+import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { ADMIN_SESSION_COOKIE, isValidSessionToken } from "@/lib/adminAuth";
+import { deleteFaq, updateFaq } from "@/lib/faq";
+
+async function requireSession() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(ADMIN_SESSION_COOKIE)?.value;
+  return isValidSessionToken(token);
+}
+
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  if (!(await requireSession())) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const { question, answer } = (await req.json()) as { question?: string; answer?: string };
+  if (!question?.trim() || !answer?.trim()) {
+    return NextResponse.json({ error: "質問と回答を入力してください" }, { status: 400 });
+  }
+
+  const faq = await updateFaq(id, { question: question.trim(), answer: answer.trim() });
+  return NextResponse.json({ faq });
+}
+
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  if (!(await requireSession())) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  await deleteFaq(id);
+  return NextResponse.json({ status: "ok" });
+}
