@@ -28,3 +28,17 @@ export async function pushText(userId: string, text: string) {
     messages: [{ type: "text", text }],
   });
 }
+
+export async function getProfile(userId: string): Promise<{ displayName: string } | null> {
+  try {
+    const res = await fetch(`https://api.line.me/v2/bot/profile/${userId}`, {
+      headers: { Authorization: `Bearer ${CHANNEL_ACCESS_TOKEN}` },
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { displayName?: string };
+    return body.displayName ? { displayName: body.displayName } : null;
+  } catch (error) {
+    console.error("[line] getProfile failed:", error);
+    return null;
+  }
+}

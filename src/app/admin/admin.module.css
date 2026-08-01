@@ -187,6 +187,63 @@
   color: #2563eb;
 }
 
+.convHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.convUser {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.convDate {
+  font-size: 14px;
+  color: #666;
+}
+
+.badgeRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #eceef1;
+  color: #333;
+}
+
+.badgeWarning {
+  background: #fdeaea;
+  color: #b91c1c;
+}
+
+.convBlock {
+  margin-bottom: 10px;
+}
+
+.convBlock:last-child {
+  margin-bottom: 0;
+}
+
+.convLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #888;
+  margin-bottom: 2px;
+}
+
 .faqItem {
   display: flex;
   flex-direction: column;

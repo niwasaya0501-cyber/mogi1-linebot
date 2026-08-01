@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { generateAnswer } from "@/lib/answer";
 import { RESERVATION_REPLY, ESCALATION_HOLDING_REPLY } from "@/lib/faq";
-import { replyText, pushText } from "@/lib/line";
+import { replyText, pushText, getProfile } from "@/lib/line";
+import { logConversation } from "@/lib/conversations";
 
 const CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET;
 const OWNER_USER_ID = process.env.LINE_OWNER_USER_ID;
@@ -34,12 +35,16 @@ async function notifyOwner(text: string, label?: string) {
 async function handleTextMessage(event: LineEvent) {
   const text = event.message?.text ?? "";
   const replyToken = event.replyToken;
+  const userId = event.source?.userId;
   if (!replyToken) return;
 
   // オーナーのuserIdを控える際に使う(LINE_OWNER_USER_ID未設定時のデバッグ用)
-  console.log("[webhook] from userId:", event.source?.userId, "text:", text);
+  console.log("[webhook] from userId:", userId, "text:", text);
 
-  const result = await generateAnswer(text);
+  const [result, profile] = await Promise.all([
+    generateAnswer(text),
+    userId ? getProfile(userId) : Promise.resolve(null),
+  ]);
   console.log(
     "[webhook] confidence:",
     result.confidenceLabel,
@@ -48,22 +53,38 @@ async function handleTextMessage(event: LineEvent) {
     result.isReservationInquiry
   );
 
+  let answerForLog: string;
+  let escalated = false;
+
   if (result.isReservationInquiry) {
+    answerForLog = RESERVATION_REPLY;
     await replyText(replyToken, RESERVATION_REPLY);
     await notifyOwner(text, "予約の問い合わせ");
-    return;
-  }
-
-  if (result.confidence <= 5) {
+  } else if (result.confidence <= 5) {
+    answerForLog = ESCALATION_HOLDING_REPLY;
+    escalated = true;
     await replyText(replyToken, ESCALATION_HOLDING_REPLY);
     await notifyOwner(
       `${text}\n\nAIの回答案: ${result.answer || "(生成なし)"}`,
       `AIが回答できなかった質問（確信度: ${result.confidenceLabel} ${result.confidence}/10）`
     );
-    return;
+  } else {
+    answerForLog = result.answer;
+    await replyText(replyToken, result.answer);
   }
 
-  await replyText(replyToken, result.answer);
+  if (userId) {
+    await logConversation({
+      lineUserId: userId,
+      displayName: profile?.displayName ?? null,
+      message: text,
+      answer: answerForLog,
+      confidence: result.confidence,
+      confidenceLabel: result.confidenceLabel,
+      isReservationInquiry: result.isReservationInquiry,
+      escalated,
+    });
+  }
 }
 
 export async function POST(req: NextRequest) {

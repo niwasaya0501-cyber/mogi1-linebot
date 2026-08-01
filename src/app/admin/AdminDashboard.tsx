@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import styles from "@/app/admin/admin.module.css";
 import FaqAdmin from "@/app/admin/FaqAdmin";
 import MenuAdmin from "@/app/admin/MenuAdmin";
+import ConversationLog from "@/app/admin/ConversationLog";
 
-type Tab = "faq" | "menu";
+type Tab = "faq" | "menu" | "conversations";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -59,9 +60,20 @@ export default function AdminDashboard() {
           >
             FAQ
           </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === "conversations"}
+            className={tab === "conversations" ? styles.tabButtonActive : styles.tabButton}
+            onClick={() => setTab("conversations")}
+          >
+            会話ログ
+          </button>
         </div>
 
-        {tab === "menu" ? <MenuAdmin /> : <FaqAdmin />}
+        {tab === "menu" && <MenuAdmin />}
+        {tab === "faq" && <FaqAdmin />}
+        {tab === "conversations" && <ConversationLog />}
       </div>
     </div>
   );
