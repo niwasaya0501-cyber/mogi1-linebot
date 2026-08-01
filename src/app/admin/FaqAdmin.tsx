@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "@/app/admin/admin.module.css";
+import { useToast } from "@/app/admin/useToast";
 
 type Faq = {
   id: string;
@@ -11,14 +12,11 @@ type Faq = {
   sortOrder: number;
 };
 
-type Toast = { type: "success" | "error"; message: string };
-
 export default function FaqAdmin() {
   const router = useRouter();
   const [faqs, setFaqs] = useState<Faq[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [toast, setToast] = useState<Toast | null>(null);
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { toast, showToast } = useToast();
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editQuestion, setEditQuestion] = useState("");
@@ -30,12 +28,6 @@ export default function FaqAdmin() {
   const [newQuestion, setNewQuestion] = useState("");
   const [newAnswer, setNewAnswer] = useState("");
   const [isAdding, setIsAdding] = useState(false);
-
-  const showToast = useCallback((toast: Toast) => {
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    setToast(toast);
-    toastTimer.current = setTimeout(() => setToast(null), 3000);
-  }, []);
 
   const loadFaqs = useCallback(async () => {
     try {

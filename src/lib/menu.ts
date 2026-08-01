@@ -1,4 +1,4 @@
-import { getSupabase } from "@/lib/supabase";
+import { getSupabase, getNextSortOrder } from "@/lib/supabase";
 
 export type MenuItem = {
   id: string;
@@ -41,14 +41,7 @@ export async function createMenuItem(input: {
   price: string;
   description: string;
 }): Promise<MenuItem> {
-  const { data: existing, error: countError } = await getSupabase()
-    .from("menu_items")
-    .select("sort_order")
-    .order("sort_order", { ascending: false })
-    .limit(1);
-  if (countError) throw countError;
-
-  const nextSortOrder = (existing?.[0]?.sort_order ?? 0) + 1;
+  const nextSortOrder = await getNextSortOrder("menu_items");
 
   const { data, error } = await getSupabase()
     .from("menu_items")

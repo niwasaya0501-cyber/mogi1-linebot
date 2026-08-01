@@ -1,8 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "@/app/admin/admin.module.css";
+import { useToast } from "@/app/admin/useToast";
+import { formatDateTime } from "@/lib/format";
 
 type Broadcast = {
   id: string;
@@ -10,34 +12,15 @@ type Broadcast = {
   createdAt: string;
 };
 
-type Toast = { type: "success" | "error"; message: string };
-
-function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString("ja-JP", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export default function BroadcastAdmin() {
   const router = useRouter();
   const [message, setMessage] = useState("");
   const [isConfirming, setIsConfirming] = useState(false);
   const [isSending, setIsSending] = useState(false);
-  const [toast, setToast] = useState<Toast | null>(null);
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { toast, showToast } = useToast();
 
   const [broadcasts, setBroadcasts] = useState<Broadcast[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-
-  const showToast = useCallback((toast: Toast) => {
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    setToast(toast);
-    toastTimer.current = setTimeout(() => setToast(null), 3000);
-  }, []);
 
   const loadBroadcasts = useCallback(async () => {
     try {

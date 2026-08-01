@@ -11,3 +11,13 @@ export function getSupabase(): SupabaseClient {
   }
   return _client;
 }
+
+export async function getNextSortOrder(table: string): Promise<number> {
+  const { data, error } = await getSupabase()
+    .from(table)
+    .select("sort_order")
+    .order("sort_order", { ascending: false })
+    .limit(1);
+  if (error) throw error;
+  return (data?.[0]?.sort_order ?? 0) + 1;
+}

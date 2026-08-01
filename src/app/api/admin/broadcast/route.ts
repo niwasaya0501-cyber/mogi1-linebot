@@ -1,17 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { ADMIN_SESSION_COOKIE, isValidSessionToken } from "@/lib/adminAuth";
+import { requireAdminSession } from "@/lib/adminAuth";
 import { broadcastText } from "@/lib/line";
 import { listBroadcasts, logBroadcast } from "@/lib/broadcasts";
 
-async function requireSession() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(ADMIN_SESSION_COOKIE)?.value;
-  return isValidSessionToken(token);
-}
-
 export async function GET() {
-  if (!(await requireSession())) {
+  if (!(await requireAdminSession())) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
@@ -20,7 +13,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  if (!(await requireSession())) {
+  if (!(await requireAdminSession())) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
@@ -29,8 +22,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "配信するメッセージを入力してください" }, { status: 400 });
   }
 
-  const result = await broadcastText(message.trim());
-  if (!result.ok) {
+  const ok = await broadcastText(message.trim());
+  if (!ok) {
     return NextResponse.json({ error: "LINEへの配信に失敗しました" }, { status: 502 });
   }
 

@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { cookies } from "next/headers";
 
 const SESSION_SECRET = process.env.ADMIN_SESSION_SECRET;
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7日
@@ -29,6 +30,12 @@ export function isValidSessionToken(token: string | undefined): boolean {
 
   const expiresAt = Number(payload);
   return Number.isFinite(expiresAt) && Date.now() < expiresAt;
+}
+
+export async function requireAdminSession(): Promise<boolean> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(ADMIN_SESSION_COOKIE)?.value;
+  return isValidSessionToken(token);
 }
 
 export const sessionCookieOptions = {

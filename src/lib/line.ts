@@ -1,6 +1,6 @@
 const CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 
-async function callLineApi(path: string, body: unknown) {
+async function callLineApi(path: string, body: unknown): Promise<boolean> {
   const res = await fetch(`https://api.line.me/v2/bot/${path}`, {
     method: "POST",
     headers: {
@@ -12,7 +12,9 @@ async function callLineApi(path: string, body: unknown) {
 
   if (!res.ok) {
     console.error(`[line] ${path} failed:`, res.status, await res.text());
+    return false;
   }
+  return true;
 }
 
 export async function replyText(replyToken: string, text: string) {
@@ -29,22 +31,10 @@ export async function pushText(userId: string, text: string) {
   });
 }
 
-export async function broadcastText(text: string): Promise<{ ok: boolean; error?: string }> {
-  const res = await fetch("https://api.line.me/v2/bot/message/broadcast", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${CHANNEL_ACCESS_TOKEN}`,
-    },
-    body: JSON.stringify({ messages: [{ type: "text", text }] }),
+export async function broadcastText(text: string): Promise<boolean> {
+  return callLineApi("message/broadcast", {
+    messages: [{ type: "text", text }],
   });
-
-  if (!res.ok) {
-    const errorBody = await res.text();
-    console.error("[line] broadcast failed:", res.status, errorBody);
-    return { ok: false, error: errorBody };
-  }
-  return { ok: true };
 }
 
 export async function getProfile(userId: string): Promise<{ displayName: string } | null> {

@@ -53,38 +53,41 @@ async function handleTextMessage(event: LineEvent) {
     result.isReservationInquiry
   );
 
-  let answerForLog: string;
+  let replyMessage: string;
   let escalated = false;
+  let ownerNotification: { text: string; label: string } | null = null;
 
   if (result.isReservationInquiry) {
-    answerForLog = RESERVATION_REPLY;
-    await replyText(replyToken, RESERVATION_REPLY);
-    await notifyOwner(text, "予約の問い合わせ");
+    replyMessage = RESERVATION_REPLY;
+    ownerNotification = { text, label: "予約の問い合わせ" };
   } else if (result.confidence <= 5) {
-    answerForLog = ESCALATION_HOLDING_REPLY;
+    replyMessage = ESCALATION_HOLDING_REPLY;
     escalated = true;
-    await replyText(replyToken, ESCALATION_HOLDING_REPLY);
-    await notifyOwner(
-      `${text}\n\nAIの回答案: ${result.answer || "(生成なし)"}`,
-      `AIが回答できなかった質問（確信度: ${result.confidenceLabel} ${result.confidence}/10）`
-    );
+    ownerNotification = {
+      text: `${text}\n\nAIの回答案: ${result.answer || "(生成なし)"}`,
+      label: `AIが回答できなかった質問（確信度: ${result.confidenceLabel} ${result.confidence}/10）`,
+    };
   } else {
-    answerForLog = result.answer;
-    await replyText(replyToken, result.answer);
+    replyMessage = result.answer;
   }
 
-  if (userId) {
-    await logConversation({
-      lineUserId: userId,
-      displayName: profile?.displayName ?? null,
-      message: text,
-      answer: answerForLog,
-      confidence: result.confidence,
-      confidenceLabel: result.confidenceLabel,
-      isReservationInquiry: result.isReservationInquiry,
-      escalated,
-    });
-  }
+  // 返信・オーナー通知・会話ログ保存はそれぞれ独立しているので並列に実行する
+  await Promise.all([
+    replyText(replyToken, replyMessage),
+    ownerNotification ? notifyOwner(ownerNotification.text, ownerNotification.label) : null,
+    userId
+      ? logConversation({
+          lineUserId: userId,
+          displayName: profile?.displayName ?? null,
+          message: text,
+          answer: replyMessage,
+          confidence: result.confidence,
+          confidenceLabel: result.confidenceLabel,
+          isReservationInquiry: result.isReservationInquiry,
+          escalated,
+        })
+      : null,
+  ]);
 }
 
 export async function POST(req: NextRequest) {

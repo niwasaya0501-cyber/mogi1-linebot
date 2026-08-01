@@ -1,4 +1,4 @@
-import { getSupabase } from "@/lib/supabase";
+import { getSupabase, getNextSortOrder } from "@/lib/supabase";
 
 export type Faq = {
   id: string;
@@ -29,14 +29,7 @@ export async function listFaqs(): Promise<Faq[]> {
 }
 
 export async function createFaq(input: { question: string; answer: string }): Promise<Faq> {
-  const { data: existing, error: countError } = await getSupabase()
-    .from("faqs")
-    .select("sort_order")
-    .order("sort_order", { ascending: false })
-    .limit(1);
-  if (countError) throw countError;
-
-  const nextSortOrder = (existing?.[0]?.sort_order ?? 0) + 1;
+  const nextSortOrder = await getNextSortOrder("faqs");
 
   const { data, error } = await getSupabase()
     .from("faqs")

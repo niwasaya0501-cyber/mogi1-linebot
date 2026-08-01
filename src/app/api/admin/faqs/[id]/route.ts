@@ -1,16 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { ADMIN_SESSION_COOKIE, isValidSessionToken } from "@/lib/adminAuth";
+import { requireAdminSession } from "@/lib/adminAuth";
 import { deleteFaq, updateFaq } from "@/lib/faq";
 
-async function requireSession() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(ADMIN_SESSION_COOKIE)?.value;
-  return isValidSessionToken(token);
-}
-
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await requireSession())) {
+  if (!(await requireAdminSession())) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
@@ -25,7 +18,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await requireSession())) {
+  if (!(await requireAdminSession())) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
