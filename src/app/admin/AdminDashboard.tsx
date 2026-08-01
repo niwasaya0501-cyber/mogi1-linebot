@@ -42,6 +42,15 @@ export default function AdminDashboard() {
           </button>
         </div>
 
+        <a
+          href="https://niwasaya0501-cyber.github.io/mogi1-linebot/manual.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.helpLink}
+        >
+          📖 使い方マニュアルを見る
+        </a>
+
         <div className={styles.tabRow} role="tablist">
           <button
             type="button"

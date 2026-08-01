@@ -156,6 +156,31 @@
   }
 }
 
+.helpLink {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  border: 1px solid #cfe0ff;
+  background: #eef4ff;
+  color: #1d4ed8;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.helpLink:hover,
+.helpLink:focus-visible {
+  background: #e2ecff;
+}
+
+.helpLink:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
 .tabRow {
   display: flex;
   gap: 8px;
