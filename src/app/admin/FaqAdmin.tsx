@@ -30,7 +30,6 @@ export default function FaqAdmin() {
   const [newQuestion, setNewQuestion] = useState("");
   const [newAnswer, setNewAnswer] = useState("");
   const [isAdding, setIsAdding] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const showToast = useCallback((toast: Toast) => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
@@ -129,33 +128,8 @@ export default function FaqAdmin() {
     }
   }
 
-  async function handleLogout() {
-    setIsLoggingOut(true);
-    try {
-      await fetch("/api/admin/logout", { method: "POST" });
-      router.push("/admin/login");
-      router.refresh();
-    } finally {
-      setIsLoggingOut(false);
-    }
-  }
-
   return (
-    <div className={styles.page}>
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>FAQ管理</h1>
-          <button
-            type="button"
-            className={styles.buttonSecondary}
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-          >
-            {isLoggingOut && <span className={styles.spinnerDark} aria-hidden="true" />}
-            ログアウト
-          </button>
-        </div>
-
+    <>
         <div className={styles.card}>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="new-question">
@@ -323,7 +297,6 @@ export default function FaqAdmin() {
             {toast.message}
           </div>
         )}
-      </div>
-    </div>
+    </>
   );
 }

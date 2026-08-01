@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ADMIN_SESSION_COOKIE, isValidSessionToken } from "@/lib/adminAuth";
-import FaqAdmin from "@/app/admin/FaqAdmin";
+import AdminDashboard from "@/app/admin/AdminDashboard";
 
 export default async function AdminPage() {
   const cookieStore = await cookies();
@@ -11,5 +11,5 @@ export default async function AdminPage() {
     redirect("/admin/login");
   }
 
-  return <FaqAdmin />;
+  return <AdminDashboard />;
 }
