@@ -9,9 +9,16 @@ LINE公式アカウント向けのLINE Bot。Next.js（App Router）でWebhook�
 - [x] LINEのWebhookをNext.jsで受け取り、署名検証して応答する基盤
 - [x] よくある質問へのAI自動応答（OpenAI + FAQデータをコンテキストに毎回渡して生成）
 - [x] AIの確信度が低い質問・予約の問い合わせをオーナーへLINE通知（エスカレーション）
-- [x] スマホから更新できるFAQ管理画面（パスワード保護、Supabaseに永続化）
-- [ ] 友だち全員へのお知らせ一斉配信
-- [ ] 本番(Vercel)デプロイ
+- [x] スマホから更新できる管理画面（メニュー・料金 / FAQ / 会話ログ / 一斉配信、パスワード保護、Supabaseに永続化）
+- [x] 友だち全員へのお知らせ一斉配信
+- [x] 本番(Vercel)デプロイ
+
+## 運用マニュアル
+
+管理画面のスマホでの使い方（専門用語なし、画面キャプチャ付き）は以下から見られる。
+
+- [GitHub Pages版](https://niwasaya0501-cyber.github.io/mogi1-linebot/manual.html)
+- [Claude Artifact版](https://claude.ai/code/artifact/0a171e76-4121-4f73-adb8-da0066c40542)
 
 ## セットアップ
 
