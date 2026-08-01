@@ -6,8 +6,9 @@ import styles from "@/app/admin/admin.module.css";
 import FaqAdmin from "@/app/admin/FaqAdmin";
 import MenuAdmin from "@/app/admin/MenuAdmin";
 import ConversationLog from "@/app/admin/ConversationLog";
+import BroadcastAdmin from "@/app/admin/BroadcastAdmin";
 
-type Tab = "faq" | "menu" | "conversations";
+type Tab = "faq" | "menu" | "conversations" | "broadcast";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -69,11 +70,21 @@ export default function AdminDashboard() {
           >
             会話ログ
           </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === "broadcast"}
+            className={tab === "broadcast" ? styles.tabButtonActive : styles.tabButton}
+            onClick={() => setTab("broadcast")}
+          >
+            お知らせ配信
+          </button>
         </div>
 
         {tab === "menu" && <MenuAdmin />}
         {tab === "faq" && <FaqAdmin />}
         {tab === "conversations" && <ConversationLog />}
+        {tab === "broadcast" && <BroadcastAdmin />}
       </div>
     </div>
   );

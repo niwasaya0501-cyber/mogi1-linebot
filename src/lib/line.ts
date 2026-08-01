@@ -29,6 +29,24 @@ export async function pushText(userId: string, text: string) {
   });
 }
 
+export async function broadcastText(text: string): Promise<{ ok: boolean; error?: string }> {
+  const res = await fetch("https://api.line.me/v2/bot/message/broadcast", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${CHANNEL_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({ messages: [{ type: "text", text }] }),
+  });
+
+  if (!res.ok) {
+    const errorBody = await res.text();
+    console.error("[line] broadcast failed:", res.status, errorBody);
+    return { ok: false, error: errorBody };
+  }
+  return { ok: true };
+}
+
 export async function getProfile(userId: string): Promise<{ displayName: string } | null> {
   try {
     const res = await fetch(`https://api.line.me/v2/bot/profile/${userId}`, {
