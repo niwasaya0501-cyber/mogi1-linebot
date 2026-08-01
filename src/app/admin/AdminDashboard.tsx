@@ -77,7 +77,7 @@ export default function AdminDashboard() {
             className={tab === "broadcast" ? styles.tabButtonActive : styles.tabButton}
             onClick={() => setTab("broadcast")}
           >
-            お知らせ配信
+            一斉お知らせ配信
           </button>
         </div>
 
