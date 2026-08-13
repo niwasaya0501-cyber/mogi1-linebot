@@ -1,13 +1,13 @@
 # mogi1-linebot
 
-LINE公式アカウント向けのLINE Bot。Next.js（App Router）でWebhookを受け、OpenAIによるFAQ自動応答・エスカレーション・FAQ管理画面を実装したプロジェクト。
+LINE公式アカウント向けのLINE Bot。Next.js（App Router）でWebhookを受け、AI（OpenAI / Anthropic(Claude) / Googleから選択可能）によるFAQ自動応答・エスカレーション・FAQ管理画面を実装したプロジェクト。
 
 詳しい仕様は [`requirements.md`](./requirements.md) を参照。
 
 ## 現在の状態
 
 - [x] LINEのWebhookをNext.jsで受け取り、署名検証して応答する基盤
-- [x] よくある質問へのAI自動応答（OpenAI + FAQデータをコンテキストに毎回渡して生成）
+- [x] よくある質問へのAI自動応答（OpenAI / Anthropic(Claude) / Googleから選択、FAQデータをコンテキストに毎回渡して生成）
 - [x] AIの確信度が低い質問・予約の問い合わせをオーナーへLINE通知（エスカレーション）
 - [x] スマホから更新できる管理画面（メニュー・料金 / FAQ / 会話ログ / 一斉配信、パスワード保護、Supabaseに永続化）
 - [x] 友だち全員へのお知らせ一斉配信
@@ -34,7 +34,10 @@ cp .env.local.example .env.local
 | `LINE_CHANNEL_SECRET` | LINE Developersコンソール > Messaging API設定 > チャンネルシークレット |
 | `LINE_CHANNEL_ACCESS_TOKEN` | 同上 > チャンネルアクセストークン（長期） |
 | `LINE_OWNER_USER_ID` | オーナー自身がこの公式アカウントに一度メッセージを送り、サーバーログの `[webhook] from userId:` から取得 |
-| `OPENAI_API_KEY` | platform.openai.com > API keys |
+| `AI_PROVIDER` | 使用するAIプロバイダーを`openai` / `anthropic` / `google`から1つ指定（未設定時は`openai`）。案件ごとに導入時に固定する |
+| `OPENAI_API_KEY` | `AI_PROVIDER=openai`のとき必須。platform.openai.com > API keys |
+| `ANTHROPIC_API_KEY` | `AI_PROVIDER=anthropic`のとき必須。console.anthropic.com > API keys |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | `AI_PROVIDER=google`のとき必須。Google AI Studio > API keys |
 | `ADMIN_PASSWORD` | `/admin` 管理画面のログインパスワード（任意に決める） |
 | `ADMIN_SESSION_SECRET` | 管理画面セッションCookieの署名用シークレット。`openssl rand -hex 32` などで生成 |
 | `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` / `NEXT_PUBLIC_SUPABASE_*` / `POSTGRES_*` | `vercel integration add supabase` で自動発行・`vercel env pull` で取得（下記参照） |
@@ -90,7 +93,7 @@ src/app/api/webhook/route.ts     LINEのWebhookエンドポイント（署名検
 src/app/api/admin/               管理画面用API（ログイン/ログアウト、FAQのCRUD）
 src/app/admin/                   FAQ管理画面（ログインページ + 一覧・編集UI）
 src/lib/faq.ts                   FAQデータアクセス層(Supabase) + 固定文言(予約返信・保留メッセージ)
-src/lib/answer.ts                OpenAIでFAQ回答+確信度を生成
+src/lib/answer.ts                AI(OpenAI/Anthropic/Google、AI_PROVIDERで切替)でFAQ回答+確信度を生成
 src/lib/line.ts                  LINEへの返信(reply)・通知(push)
 src/lib/supabase.ts              Supabaseサーバークライアント(service role)
 src/lib/adminAuth.ts             管理画面セッションの発行・検証
@@ -102,6 +105,6 @@ requirements.md                  仕様書
 
 - Next.js（App Router / TypeScript）
 - LINE Messaging API（返信・PUSH通知は `https://api.line.me/v2/bot/message/*` を直接呼び出し）
-- OpenAI API（`gpt-4o-mini`、構造化出力で回答文+確信度を生成）
+- Vercel AI SDK経由でOpenAI(`gpt-4o-mini`) / Anthropic(`claude-haiku-4-5`) / Google(`gemini-2.5-flash-lite`)から選択（`AI_PROVIDER`環境変数、構造化出力で回答文+確信度を生成）
 - Supabase（Postgres、FAQデータの永続化）
-- デプロイ先: Vercel（予定）
+- デプロイ先: Vercel

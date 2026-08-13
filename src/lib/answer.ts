@@ -1,8 +1,10 @@
-import OpenAI from "openai";
+import { generateText, Output } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { anthropic } from "@ai-sdk/anthropic";
+import { google } from "@ai-sdk/google";
+import { z } from "zod";
 import { listFaqs } from "@/lib/faq";
 import { listMenuItems } from "@/lib/menu";
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export type ConfidenceLabel = "高" | "中" | "低";
 
@@ -12,6 +14,30 @@ export type AnswerResult = {
   confidenceLabel: ConfidenceLabel;
   isReservationInquiry: boolean;
 };
+
+// 導入時に環境変数 AI_PROVIDER で固定する(openai / anthropic / google)。未設定時はopenai。
+type AiProvider = "openai" | "anthropic" | "google";
+
+function getModel() {
+  const provider = (process.env.AI_PROVIDER ?? "openai") as AiProvider;
+  switch (provider) {
+    case "anthropic":
+      return anthropic("claude-haiku-4-5");
+    case "google":
+      return google("gemini-2.5-flash-lite");
+    default:
+      return openai("gpt-4o-mini");
+  }
+}
+
+// AI_PROVIDERはデプロイ時に固定される値のため、モデルは起動時に一度だけ生成して使い回す
+const model = getModel();
+
+const answerSchema = z.object({
+  answer: z.string(),
+  confidence: z.number().int().min(0).max(10),
+  is_reservation_inquiry: z.boolean(),
+});
 
 function toLabel(confidence: number): ConfidenceLabel {
   if (confidence >= 8) return "高";
@@ -45,45 +71,18 @@ export async function generateAnswer(text: string): Promise<AnswerResult> {
       .map((m, i) => `${i + 1}. ${m.name} / ${m.price}${m.description ? ` / ${m.description}` : ""}`)
       .join("\n");
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: buildSystemPrompt(faqContext, menuContext) },
-        { role: "user", content: text },
-      ],
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "faq_answer",
-          schema: {
-            type: "object",
-            properties: {
-              answer: { type: "string" },
-              confidence: { type: "integer", minimum: 0, maximum: 10 },
-              is_reservation_inquiry: { type: "boolean" },
-            },
-            required: ["answer", "confidence", "is_reservation_inquiry"],
-            additionalProperties: false,
-          },
-          strict: true,
-        },
-      },
+    const { output } = await generateText({
+      model,
+      instructions: buildSystemPrompt(faqContext, menuContext),
+      prompt: text,
+      output: Output.object({ schema: answerSchema }),
     });
 
-    const raw = completion.choices[0]?.message?.content;
-    if (!raw) throw new Error("empty response from OpenAI");
-
-    const parsed = JSON.parse(raw) as {
-      answer: string;
-      confidence: number;
-      is_reservation_inquiry: boolean;
-    };
-
     return {
-      answer: parsed.answer,
-      confidence: parsed.confidence,
-      confidenceLabel: toLabel(parsed.confidence),
-      isReservationInquiry: parsed.is_reservation_inquiry,
+      answer: output.answer,
+      confidence: output.confidence,
+      confidenceLabel: toLabel(output.confidence),
+      isReservationInquiry: output.is_reservation_inquiry,
     };
   } catch (error) {
     console.error("[answer] generation failed, falling back to escalation:", error);

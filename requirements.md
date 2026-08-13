@@ -40,7 +40,11 @@
 
 ## 5. 技術構成
 - LINE Messaging API（既存の公式アカウントをそのまま活用）
-- AI: OpenAI API（`gpt-4o-mini`、構造化出力で回答文+確信度を同時生成）※当初案のClaude APIから変更
+- AI: Vercel AI SDK経由でOpenAI / Anthropic(Claude) / Googleの3社に対応（構造化出力で回答文+確信度を同時生成）。導入時に環境変数`AI_PROVIDER`で1社を固定（未設定時はopenai）
+  - openai: `gpt-4o-mini`
+  - anthropic: `claude-haiku-4-5`（Claude Haiku 4.5）
+  - google: `gemini-2.5-flash-lite`（Gemini 2.5 Flash-Lite）
+  - コスト重視かご案内の精度重視かはお客様のご要望に応じて選択いただく（詳細は商談時にご案内）
 - アプリ: Next.js（App Router） / サーバー: Vercel
 - データベース: Supabase（FAQデータの永続化、管理画面のバックエンド）
 - 管理画面: `/admin`、パスワード認証（署名付きセッションCookie）
