@@ -13,6 +13,18 @@ LINE公式アカウント向けのLINE Bot。Next.js（App Router）でWebhook�
 - [x] 友だち全員へのお知らせ一斉配信
 - [x] 本番(Vercel)デプロイ
 
+## スクリーンショット
+
+| メニュー・料金 | FAQ |
+|---|---|
+| ![メニュー・料金管理画面](./docs/screenshots/admin-menu.jpg) | ![FAQ管理画面](./docs/screenshots/admin-faq.jpg) |
+
+| 会話ログ | 一斉配信 |
+|---|---|
+| ![会話ログ画面](./docs/screenshots/admin-conversations.jpg) | ![一斉配信画面](./docs/screenshots/admin-broadcast.jpg) |
+
+会話ログのお客様名はサンプル表示用のダミー名。
+
 ## 運用マニュアル
 
 管理画面のスマホでの使い方（専門用語なし、画面キャプチャ付き）は以下から見られる。
