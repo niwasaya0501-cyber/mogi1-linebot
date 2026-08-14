@@ -65,6 +65,12 @@ export async function deleteFaq(id: string): Promise<void> {
   if (error) throw error;
 }
 
+// リッチメニューの「問い合わせ」ボタンから送信される固定文言
+export const INQUIRY_TRIGGER_TEXT = "問い合わせ";
+
+export const INQUIRY_PROMPT_REPLY =
+  "お問い合わせありがとうございます。どのようなご要件でしょうか？内容を詳しく教えてください。";
+
 export const RESERVATION_REPLY =
   "メッセージでお返事いたします。ご希望の日時を教えてください。";
 

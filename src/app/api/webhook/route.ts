@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { generateAnswer } from "@/lib/answer";
-import { RESERVATION_REPLY, RESERVATION_CONFIRMED_REPLY, ESCALATION_HOLDING_REPLY } from "@/lib/faq";
+import {
+  INQUIRY_TRIGGER_TEXT,
+  INQUIRY_PROMPT_REPLY,
+  RESERVATION_REPLY,
+  RESERVATION_CONFIRMED_REPLY,
+  ESCALATION_HOLDING_REPLY,
+} from "@/lib/faq";
 import { replyText, pushText, getProfile } from "@/lib/line";
 import { logConversation } from "@/lib/conversations";
 
@@ -40,6 +46,28 @@ async function handleTextMessage(event: LineEvent) {
 
   // オーナーのuserIdを控える際に使う(LINE_OWNER_USER_ID未設定時のデバッグ用)
   console.log("[webhook] from userId:", userId, "text:", text);
+
+  // リッチメニューの「問い合わせ」ボタン等、要件が分からない状態の一次タップにはAIを呼ばず、
+  // オーナーへの通知もせずに詳細を聞き返す(具体的な内容が分かってから通常フローで拾う)
+  if (text.trim() === INQUIRY_TRIGGER_TEXT) {
+    const profile = userId ? await getProfile(userId) : null;
+    await Promise.all([
+      replyText(replyToken, INQUIRY_PROMPT_REPLY),
+      userId
+        ? logConversation({
+            lineUserId: userId,
+            displayName: profile?.displayName ?? null,
+            message: text,
+            answer: INQUIRY_PROMPT_REPLY,
+            confidence: null,
+            confidenceLabel: null,
+            isReservationInquiry: false,
+            escalated: false,
+          })
+        : null,
+    ]);
+    return;
+  }
 
   const [result, profile] = await Promise.all([
     generateAnswer(text),
