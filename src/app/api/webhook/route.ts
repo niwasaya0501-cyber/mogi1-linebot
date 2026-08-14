@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { generateAnswer } from "@/lib/answer";
-import { RESERVATION_REPLY, ESCALATION_HOLDING_REPLY } from "@/lib/faq";
+import { RESERVATION_REPLY, RESERVATION_CONFIRMED_REPLY, ESCALATION_HOLDING_REPLY } from "@/lib/faq";
 import { replyText, pushText, getProfile } from "@/lib/line";
 import { logConversation } from "@/lib/conversations";
 
@@ -58,7 +58,7 @@ async function handleTextMessage(event: LineEvent) {
   let ownerNotification: { text: string; label: string } | null = null;
 
   if (result.isReservationInquiry) {
-    replyMessage = RESERVATION_REPLY;
+    replyMessage = result.hasSpecificDateTime ? RESERVATION_CONFIRMED_REPLY : RESERVATION_REPLY;
     ownerNotification = { text, label: "予約の問い合わせ" };
   } else if (result.confidence <= 5) {
     replyMessage = ESCALATION_HOLDING_REPLY;

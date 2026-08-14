@@ -13,6 +13,7 @@ export type AnswerResult = {
   confidence: number; // 0-10
   confidenceLabel: ConfidenceLabel;
   isReservationInquiry: boolean;
+  hasSpecificDateTime: boolean;
 };
 
 // 導入時に環境変数 AI_PROVIDER で固定する(openai / anthropic / google)。未設定時はopenai。
@@ -37,6 +38,7 @@ const answerSchema = z.object({
   answer: z.string(),
   confidence: z.number().int().min(0).max(10),
   is_reservation_inquiry: z.boolean(),
+  has_specific_datetime: z.boolean(),
 });
 
 function toLabel(confidence: number): ConfidenceLabel {
@@ -58,7 +60,8 @@ ${menuContext}
 # 出力ルール
 - answer: お客様への返信文そのもの。FAQ・メニュー情報に基づいた自然な一文〜数文にする。メニュー名や料金を答える際は登録されている表記のまま伝える。根拠がない場合は「担当者にご確認のうえ、あらためてご連絡いたします」のような一次受付の文にする
 - confidence: 0〜10の整数。回答がFAQ・メニュー情報に直接裏付けられているほど高くする。直接該当する記述がない場合は必ず5以下にすること
-- is_reservation_inquiry: お客様が予約の可否を聞いている、または予約をしたいという内容であれば true、それ以外は false`;
+- is_reservation_inquiry: お客様が予約の可否を聞いている、または予約をしたいという内容であれば true、それ以外は false
+- has_specific_datetime: is_reservation_inquiryがtrueの場合のみ判定する。「明日の15時」「8月15日16時」「8/15 16:00」「来週の月曜10時」のように具体的な日付・時刻が本文に含まれていればtrue、「予約したい」「予約できますか」のように日時の指定がなければfalse。is_reservation_inquiryがfalseの場合は常にfalse`;
 }
 
 export async function generateAnswer(text: string): Promise<AnswerResult> {
@@ -83,9 +86,16 @@ export async function generateAnswer(text: string): Promise<AnswerResult> {
       confidence: output.confidence,
       confidenceLabel: toLabel(output.confidence),
       isReservationInquiry: output.is_reservation_inquiry,
+      hasSpecificDateTime: output.has_specific_datetime,
     };
   } catch (error) {
     console.error("[answer] generation failed, falling back to escalation:", error);
-    return { answer: "", confidence: 0, confidenceLabel: "低", isReservationInquiry: false };
+    return {
+      answer: "",
+      confidence: 0,
+      confidenceLabel: "低",
+      isReservationInquiry: false,
+      hasSpecificDateTime: false,
+    };
   }
 }

@@ -68,5 +68,8 @@ export async function deleteFaq(id: string): Promise<void> {
 export const RESERVATION_REPLY =
   "メッセージでお返事いたします。ご希望の日時を教えてください。";
 
+export const RESERVATION_CONFIRMED_REPLY =
+  "ご予約ありがとうございます。ただいま確認しておりますので、少々お待ちください。";
+
 export const ESCALATION_HOLDING_REPLY =
   "担当者が確認のうえ、あらためてご連絡いたします。少々お待ちください。";
